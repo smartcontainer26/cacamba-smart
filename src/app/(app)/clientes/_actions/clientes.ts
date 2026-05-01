@@ -47,6 +47,21 @@ export async function createCliente(
     return { error: "Sessão inválida. Faça login novamente." };
   }
 
+  // Camada B: check app-level de duplicidade de documento (best-effort).
+  // RLS já escopa por organization_id — não preciso filtrar manualmente.
+  // Documento null/vazio é permitido pra múltiplos clientes.
+  // Camada A (UNIQUE INDEX parcial no DB) cobre race conditions.
+  if (data.documento) {
+    const { data: existing } = await supabase
+      .from("clientes")
+      .select("id")
+      .eq("documento", data.documento)
+      .limit(1);
+    if (existing && existing.length > 0) {
+      return { error: "Já existe um cliente com esse documento." };
+    }
+  }
+
   const { error } = await supabase.from("clientes").insert({
     organization_id: orgId,
     ...data,
@@ -73,6 +88,21 @@ export async function updateCliente(
   if (err) return { error: err };
 
   const supabase = await createClient();
+
+  // Camada B: check app-level de duplicidade. .neq("id", id) exclui o
+  // próprio registro (senão você não conseguiria salvar uma edição
+  // que mantém o mesmo documento).
+  if (data.documento) {
+    const { data: existing } = await supabase
+      .from("clientes")
+      .select("id")
+      .eq("documento", data.documento)
+      .neq("id", id)
+      .limit(1);
+    if (existing && existing.length > 0) {
+      return { error: "Já existe um cliente com esse documento." };
+    }
+  }
 
   const { error } = await supabase.from("clientes").update(data).eq("id", id);
 
