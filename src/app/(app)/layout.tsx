@@ -33,8 +33,6 @@ export default async function AppLayout({
   }
 
   // Conta autenticada mas sem profile vinculado a uma empresa.
-  // Tela mínima full-screen, sem sidebar (não há dados de profile
-  // pra preencher o rodapé).
   if (!profile) {
     return (
       <div className="flex min-h-screen items-center justify-center px-4 py-8">
@@ -52,6 +50,36 @@ export default async function AppLayout({
     );
   }
 
+  // Regra de negócio: o painel web é EXCLUSIVO de master.
+  // Motoristas e outros roles caem em tela informativa em qualquer
+  // rota (app)/* (incluindo /dashboard) — eles devem usar o app mobile,
+  // que será uma rota separada criada futuramente.
+  // Fail-closed: o check é direto na role do profile carregado.
+  if (profile.role !== "master") {
+    return (
+      <div className="flex min-h-screen items-center justify-center px-4 py-8">
+        <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-8 text-center shadow-2xl shadow-black/30">
+          <h1 className="mb-2 text-xl font-bold">
+            Caçamba <span className="text-accent">Smart</span>
+          </h1>
+          <p className="mb-4 text-sm text-text-muted">
+            Olá, {profile.nome?.trim() || user.email}
+          </p>
+          <p className="mb-1 text-sm text-text">
+            O painel web é exclusivo para administradores.
+          </p>
+          <p className="mb-6 text-sm text-text-muted">
+            Motoristas devem usar o app mobile.
+          </p>
+          <div className="flex justify-center">
+            <LogoutButton />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Master: painel completo (sidebar + rota requested).
   return (
     <div className="min-h-screen">
       <Sidebar
