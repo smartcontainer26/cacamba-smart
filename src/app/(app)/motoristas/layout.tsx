@@ -3,7 +3,7 @@
 // Não-master é redirecionado pro dashboard.
 
 import { redirect } from "next/navigation";
-import { requireMaster } from "./_lib/require-master";
+import { requireMaster } from "../_lib/require-master";
 
 export default async function MotoristasLayout({
   children,
