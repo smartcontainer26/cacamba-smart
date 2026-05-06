@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Pencil } from "lucide-react";
 import { StatusBadge } from "./status-badge";
-import type { Container } from "../_types";
+import type { ContainerComCliente } from "../_types";
 
 function formatDate(iso: string | null): string {
   if (!iso) return "—";
@@ -14,7 +14,11 @@ function formatDate(iso: string | null): string {
   });
 }
 
-export function ContainersTable({ containers }: { containers: Container[] }) {
+export function ContainersTable({
+  containers,
+}: {
+  containers: ContainerComCliente[];
+}) {
   return (
     <div className="overflow-x-auto rounded-xl border border-border">
       <table className="w-full text-sm">
@@ -40,8 +44,7 @@ export function ContainersTable({ containers }: { containers: Container[] }) {
                 <StatusBadge status={c.status} />
               </td>
               <td className="px-4 py-3 text-text-muted">
-                {/* TODO Etapa 8 (Clientes): trocar pelo nome via JOIN clientes(nome) */}
-                {c.cliente_atual_id ? "Cliente vinculado" : "—"}
+                {c.cliente?.nome ?? "—"}
               </td>
               <td className="px-4 py-3 text-text-muted">
                 {formatDate(c.data_entrega)}

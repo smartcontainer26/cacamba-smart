@@ -25,4 +25,12 @@ export type Container = {
   updated_at: string;
 };
 
+// Versão com JOIN (PostgREST embedding) — usada na listagem pra mostrar
+// o nome do cliente vinculado em vez do UUID. Não substitui o Container
+// original porque outros lugares (ex: form de edição) operam só com as
+// colunas da tabela e não precisam do embed.
+export type ContainerComCliente = Container & {
+  cliente: { nome: string } | null;
+};
+
 export type FormState = { error: string | null };

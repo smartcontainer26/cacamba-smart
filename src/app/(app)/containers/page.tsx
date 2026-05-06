@@ -3,7 +3,7 @@ import { Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ContainersFilters } from "./_components/containers-filters";
 import { ContainersTable } from "./_components/containers-table";
-import type { Container } from "./_types";
+import type { ContainerComCliente } from "./_types";
 
 const PAGE_SIZE = 20;
 
@@ -34,7 +34,11 @@ export default async function ContainersPage({
 
   const supabase = await createClient();
   // RLS já filtra por organization_id — não precisa filtro manual aqui.
-  let query = supabase.from("containers").select("*", { count: "exact" });
+  // Embedding cliente:clientes!cliente_atual_id(nome) traz o nome do
+  // cliente vinculado quando há um (RLS de clientes também escopa por org).
+  let query = supabase
+    .from("containers")
+    .select("*, cliente:clientes!cliente_atual_id(nome)", { count: "exact" });
   if (status !== "todos") query = query.eq("status", status);
   if (q) query = query.ilike("numero", `%${q}%`);
 
@@ -48,7 +52,7 @@ export default async function ContainersPage({
 
   if (error) throw error;
 
-  const containers = (data ?? []) as Container[];
+  const containers = (data ?? []) as unknown as ContainerComCliente[];
   const total = count ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const hasFilters = status !== "todos" || q !== "";
