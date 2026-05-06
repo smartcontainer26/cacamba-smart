@@ -139,6 +139,10 @@ export async function createTroca(
       .update({ status: "disponivel", cliente_atual_id: null })
       .eq("id", finalRetirado);
     if (error) {
+      console.error(
+        "[createTroca] falha ao atualizar container retirado:",
+        error,
+      );
       return { error: "Erro ao atualizar container retirado." };
     }
   }
@@ -154,6 +158,10 @@ export async function createTroca(
       })
       .eq("id", finalEntregue);
     if (error) {
+      console.error(
+        "[createTroca] falha ao atualizar container entregue:",
+        error,
+      );
       // Rollback do passo 3
       if (finalRetirado && origRetirado) {
         await revertContainer(supabase, finalRetirado, origRetirado);
@@ -177,6 +185,7 @@ export async function createTroca(
   });
 
   if (insertErr) {
+    console.error("[createTroca] falha no INSERT da troca:", insertErr);
     // Rollback de ambos containers
     if (finalRetirado && origRetirado) {
       await revertContainer(supabase, finalRetirado, origRetirado);
@@ -211,7 +220,12 @@ export async function cancelarTroca(id: string): Promise<FormState> {
     .eq("id", id)
     .maybeSingle();
 
-  if (fetchErr || !troca) return { error: "Troca não encontrada." };
+  if (fetchErr || !troca) {
+    if (fetchErr) {
+      console.error("[cancelarTroca] falha ao buscar troca:", fetchErr);
+    }
+    return { error: "Troca não encontrada." };
+  }
   if (troca.status !== "aprovada") {
     return { error: "Apenas trocas aprovadas podem ser canceladas." };
   }
@@ -225,7 +239,13 @@ export async function cancelarTroca(id: string): Promise<FormState> {
         cliente_atual_id: troca.cliente_id,
       })
       .eq("id", troca.container_retirado_id);
-    if (error) return { error: "Erro ao reverter container retirado." };
+    if (error) {
+      console.error(
+        "[cancelarTroca] falha ao reverter container retirado:",
+        error,
+      );
+      return { error: "Erro ao reverter container retirado." };
+    }
   }
 
   // Reverte: container_entregue volta pra disponivel sem cliente
@@ -237,7 +257,13 @@ export async function cancelarTroca(id: string): Promise<FormState> {
         cliente_atual_id: null,
       })
       .eq("id", troca.container_entregue_id);
-    if (error) return { error: "Erro ao reverter container entregue." };
+    if (error) {
+      console.error(
+        "[cancelarTroca] falha ao reverter container entregue:",
+        error,
+      );
+      return { error: "Erro ao reverter container entregue." };
+    }
   }
 
   // Marca troca como cancelada
@@ -246,7 +272,13 @@ export async function cancelarTroca(id: string): Promise<FormState> {
     .update({ status: "cancelada" })
     .eq("id", id);
 
-  if (updateErr) return { error: "Erro ao marcar troca como cancelada." };
+  if (updateErr) {
+    console.error(
+      "[cancelarTroca] falha ao marcar troca como cancelada:",
+      updateErr,
+    );
+    return { error: "Erro ao marcar troca como cancelada." };
+  }
 
   revalidatePath("/trocas");
   revalidatePath(`/trocas/${id}`);
@@ -270,7 +302,10 @@ export async function atualizarObservacoes(
     .update({ observacoes })
     .eq("id", id);
 
-  if (error) return { error: "Erro ao atualizar observações." };
+  if (error) {
+    console.error("[atualizarObservacoes] falha ao atualizar:", error);
+    return { error: "Erro ao atualizar observações." };
+  }
 
   revalidatePath(`/trocas/${id}`);
   redirect(`/trocas/${id}?msg=observacoes_atualizadas`);
