@@ -10,7 +10,6 @@ import {
   Container,
   ArrowLeftRight,
   Wrench,
-  PenSquare,
   Users,
   FileText,
   ScrollText,
@@ -47,7 +46,6 @@ const SECTIONS: NavSection[] = [
       { href: "/containers", icon: Container, label: "Containers" },
       { href: "/trocas", icon: ArrowLeftRight, label: "Troca" },
       { href: "/manutencao", icon: Wrench, label: "Manutenção" },
-      { href: "/manutencao/nova", icon: PenSquare, label: "Lançar Manut." },
     ],
   },
   {
